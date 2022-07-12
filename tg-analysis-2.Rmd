@@ -1,0 +1,59 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(viridis)
+library(plyr)
+
+tg_df <- read_csv("tg-update-df.csv")
+ttg_df <-read_csv("update_t-test.csv")
+
+mu <- ddply(ttg_df, "update", summarise, grp.mean=mean(percent))
+```
+
+
+```{r}
+ggplot(tg_df, aes(x=x) ) +
+  # Top
+  geom_density( aes(x = 'pre-update', y = ..density..), fill="#69b3a2" ) +
+  geom_label( aes(x=4.5, y=0.25, label="variable1"), color="#69b3a2") +
+  # Bottom
+  geom_density( aes(x = 'post-update', y = -..density..), fill= "#404080") +
+  geom_label( aes(x=4.5, y=-0.25, label="variable2"), color="#404080") + 
+  xlab("value of x")
+```
+
+```{r}
+ttg_df %>%
+  ggplot( aes(x=percent, fill=update)) +
+    geom_density( color="#e9ecef", alpha=0.6) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    scale_color_manual(values=c("#46897a", "#27274d")) +
+    labs(fill="") +
+    geom_vline(data=mu, aes(xintercept=grp.mean, color=update),
+              linetype="dashed") +
+    theme(legend.title = element_blank(), legend.position = c(.9,.9), axis.line = element_line(), panel.grid = element_blank())
+```
+
+```{r}
+ttg_df %>%
+  ggplot( aes(x=percent, fill=update)) +
+    geom_density( color="#e9ecef", alpha=0.6) +
+    scale_fill_manual(values=c( "#404080","#69b3a2")) +
+    scale_color_manual(values=c("#27274d","#46897a")) +
+    expand_limits(x=0, y=0) +
+    labs(color="Mean", fill="Group", y="", x="Practice Balls (%)", title = "Practice Ball Distribution - Speedway Update", subtitle = "") +
+    geom_vline(data=mu, aes(xintercept=grp.mean, color=update),
+              linetype="dashed") +
+    theme(legend.position = c(.9,.7), axis.line = element_line(), panel.grid = element_blank()) +
+  theme_classic()
+```
+
+```{r}
+ttg_df %>% 
+  t.test(percent~update, data = .)
+```
+
